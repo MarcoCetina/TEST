@@ -617,3 +617,114 @@ html, body {
     color: var(--success-color);
     margin: 12px 0;
 }
+
+/* Data Input Area */
+.data-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.data-textarea {
+    width: 100%;
+    min-height: 120px;
+    max-height: 200px;
+    padding: 12px;
+    background-color: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.data-textarea:hover {
+    border-color: var(--primary-color);
+}
+
+.data-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+.data-textarea::placeholder {
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+}
+
+.data-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.data-actions .btn {
+    flex: 1;
+    margin-top: 0;
+}
+
+/* Instructions */
+.instructions {
+    background-color: var(--background-dark);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.instructions ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.instructions li {
+    margin-bottom: 6px;
+}
+
+.instructions strong {
+    color: var(--text-primary);
+}
+
+.instructions .hint,
+.message-text .hint {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background-color: rgba(124, 58, 237, 0.1);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Links */
+.message-text a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.message-text a:hover {
+    text-decoration: underline;
+}
+
+/* Data loaded indicator */
+.data-loaded-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--success-color);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--success-color);
+}
+
+.data-loaded-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background-color: var(--success-color);
+    border-radius: 50%;
+}

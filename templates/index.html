@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power BI Claude Chatbot</title>
+    <title>Power BI Data Chat</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
@@ -19,7 +19,7 @@
                         <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>Power BI + Claude</span>
+                    <span>Data Chat</span>
                 </div>
             </div>
 
@@ -28,54 +28,72 @@
                 <div class="sidebar-section">
                     <h3>AI Model</h3>
                     <select id="model-select" class="select-input">
-                        <option value="">Loading models...</option>
+                        <option value="claude-sonnet-4-5-20250929">Claude Sonnet 4.5 (Fast)</option>
+                        <option value="claude-opus-4-5-20251101">Claude Opus 4.5 (Powerful)</option>
                     </select>
                 </div>
 
-                <!-- Power BI Connection -->
+                <!-- Data Input -->
                 <div class="sidebar-section">
-                    <h3>Power BI Connection</h3>
-                    <div id="connection-status" class="connection-status disconnected">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Not Connected</span>
-                    </div>
-                    <button id="connect-btn" class="btn btn-primary">
-                        Connect to Power BI
-                    </button>
-                    <button id="refresh-btn" class="btn btn-secondary" style="display: none;">
-                        Refresh Data
-                    </button>
-                </div>
+                    <h3>Your Data</h3>
+                    <div class="data-input-area">
+                        <textarea
+                            id="data-input"
+                            class="data-textarea"
+                            placeholder="Paste your data here...
 
-                <!-- Workspace Selection -->
-                <div class="sidebar-section" id="workspace-section" style="display: none;">
-                    <h3>Workspace</h3>
-                    <select id="workspace-select" class="select-input">
-                        <option value="">Select workspace...</option>
-                    </select>
+1. Open Power BI in your browser
+2. Click on a table/visual
+3. Export to CSV or copy the data
+4. Paste it here!"
+                        ></textarea>
+                        <div class="data-actions">
+                            <button id="parse-btn" class="btn btn-primary">
+                                Load Data
+                            </button>
+                            <button id="clear-data-btn" class="btn btn-ghost">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Data Summary -->
                 <div class="sidebar-section" id="data-summary-section" style="display: none;">
-                    <h3>Data Summary</h3>
+                    <h3>Data Loaded</h3>
                     <div id="data-summary" class="data-summary">
-                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="sidebar-section">
-                    <h3>Quick Actions</h3>
+                <div class="sidebar-section" id="quick-actions-section" style="display: none;">
+                    <h3>Quick Questions</h3>
                     <div class="quick-actions">
-                        <button class="quick-action-btn" data-action="explain-schema">
-                            Explain Schema
+                        <button class="quick-action-btn" data-action="summarize">
+                            Summarize this data
                         </button>
-                        <button class="quick-action-btn" data-action="suggest-queries">
-                            Suggest Queries
+                        <button class="quick-action-btn" data-action="insights">
+                            Find patterns & insights
                         </button>
-                        <button class="quick-action-btn" data-action="find-insights">
-                            Find Insights
+                        <button class="quick-action-btn" data-action="issues">
+                            Check for data issues
                         </button>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="sidebar-section">
+                    <h3>How to Export from Power BI</h3>
+                    <div class="instructions">
+                        <ol>
+                            <li>Open your Power BI report</li>
+                            <li>Click on a table or visual</li>
+                            <li>Click <strong>...</strong> (More options)</li>
+                            <li>Select <strong>Export data</strong></li>
+                            <li>Choose <strong>CSV</strong> format</li>
+                            <li>Open the file & copy contents here</li>
+                        </ol>
+                        <p class="hint">Or just select cells in a table and Ctrl+C to copy!</p>
                     </div>
                 </div>
             </div>
@@ -91,7 +109,7 @@
         <main class="main-content">
             <!-- Chat Header -->
             <header class="chat-header">
-                <h1>Ask questions about your Power BI data</h1>
+                <h1>Ask questions about your data</h1>
                 <div class="header-info">
                     <span id="token-usage">Tokens: 0 in / 0 out</span>
                 </div>
@@ -109,14 +127,15 @@
                         </div>
                         <div class="message-content">
                             <div class="message-text">
-                                <p>Welcome! I'm Claude, your Power BI data assistant. I can help you:</p>
-                                <ul>
-                                    <li>Understand your Power BI data structure and schema</li>
-                                    <li>Answer questions about your datasets, reports, and dashboards</li>
-                                    <li>Generate DAX queries based on your requirements</li>
-                                    <li>Provide insights and analysis suggestions</li>
-                                </ul>
-                                <p>To get started, connect to your Power BI workspace using the sidebar, or just ask me a question!</p>
+                                <p><strong>Welcome!</strong> I'm here to help you analyze your Power BI data.</p>
+                                <p><strong>Getting started is easy:</strong></p>
+                                <ol>
+                                    <li>Open your Power BI report at <a href="https://app.powerbi.com" target="_blank">app.powerbi.com</a></li>
+                                    <li>Export or copy data from any table/visual</li>
+                                    <li>Paste it in the sidebar and click "Load Data"</li>
+                                    <li>Ask me anything about your data!</li>
+                                </ol>
+                                <p class="hint">No API keys or permissions needed - just copy and paste!</p>
                             </div>
                         </div>
                     </div>
@@ -130,7 +149,7 @@
                         <textarea
                             id="chat-input"
                             class="chat-input"
-                            placeholder="Ask a question about your Power BI data..."
+                            placeholder="Ask a question about your data..."
                             rows="1"
                         ></textarea>
                         <button type="submit" class="send-btn" id="send-btn">
@@ -157,7 +176,6 @@
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dax.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

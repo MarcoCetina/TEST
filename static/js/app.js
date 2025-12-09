@@ -1,28 +1,25 @@
 /**
- * Power BI Claude Chatbot - Frontend Application
+ * Power BI Data Chat - Simple data analysis with Claude
  */
 
 // Application State
 const state = {
-    selectedModel: null,
-    selectedWorkspace: null,
-    powerbiData: null,
+    selectedModel: 'claude-sonnet-4-5-20250929',
+    parsedData: null,
     conversationHistory: [],
     totalInputTokens: 0,
-    totalOutputTokens: 0,
-    isConnected: false
+    totalOutputTokens: 0
 };
 
 // DOM Elements
 const elements = {
     modelSelect: document.getElementById('model-select'),
-    workspaceSelect: document.getElementById('workspace-select'),
-    workspaceSection: document.getElementById('workspace-section'),
-    connectionStatus: document.getElementById('connection-status'),
-    connectBtn: document.getElementById('connect-btn'),
-    refreshBtn: document.getElementById('refresh-btn'),
+    dataInput: document.getElementById('data-input'),
+    parseBtn: document.getElementById('parse-btn'),
+    clearDataBtn: document.getElementById('clear-data-btn'),
     dataSummarySection: document.getElementById('data-summary-section'),
     dataSummary: document.getElementById('data-summary'),
+    quickActionsSection: document.getElementById('quick-actions-section'),
     chatMessages: document.getElementById('chat-messages'),
     chatContainer: document.getElementById('chat-container'),
     chatForm: document.getElementById('chat-form'),
@@ -47,38 +44,26 @@ marked.setOptions({
 
 // API Functions
 const api = {
-    async getModels() {
-        const response = await fetch('/api/models');
+    async parseData(text) {
+        const response = await fetch('/api/parse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, type: 'auto' })
+        });
         return response.json();
     },
 
-    async getWorkspaces() {
-        const response = await fetch('/api/workspaces');
-        return response.json();
-    },
-
-    async getWorkspaceData(workspaceId) {
-        const response = await fetch(`/api/workspace/${workspaceId}/data`);
-        return response.json();
-    },
-
-    async chat(question, model, workspaceId, powerbiData, conversationHistory) {
+    async chat(question, model, parsedData, conversationHistory) {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 question,
                 model,
-                workspace_id: workspaceId,
-                powerbi_data: powerbiData,
+                parsed_data: parsedData,
                 conversation_history: conversationHistory
             })
         });
-        return response.json();
-    },
-
-    async healthCheck() {
-        const response = await fetch('/api/health');
         return response.json();
     }
 };
@@ -95,50 +80,33 @@ const ui = {
         elements.loadingOverlay.style.display = 'none';
     },
 
-    updateConnectionStatus(connected, error = null) {
-        const statusEl = elements.connectionStatus;
-        const textEl = statusEl.querySelector('.status-text');
-
-        statusEl.classList.remove('connected', 'disconnected', 'error');
-
-        if (error) {
-            statusEl.classList.add('error');
-            textEl.textContent = 'Error';
-        } else if (connected) {
-            statusEl.classList.add('connected');
-            textEl.textContent = 'Connected';
-            state.isConnected = true;
-        } else {
-            statusEl.classList.add('disconnected');
-            textEl.textContent = 'Not Connected';
-            state.isConnected = false;
-        }
-    },
-
     updateDataSummary(data) {
-        if (!data) {
+        if (!data || data.error) {
             elements.dataSummarySection.style.display = 'none';
+            elements.quickActionsSection.style.display = 'none';
             return;
         }
 
         elements.dataSummarySection.style.display = 'block';
+        elements.quickActionsSection.style.display = 'block';
 
-        const datasets = data.datasets?.length || 0;
-        const reports = data.reports?.length || 0;
-        const dashboards = data.dashboards?.length || 0;
+        const columns = data.columns?.length || 0;
+        const rows = data.row_count || 0;
 
         elements.dataSummary.innerHTML = `
             <div class="data-summary-item">
-                <span class="data-summary-label">Datasets</span>
-                <span class="data-summary-value">${datasets}</span>
+                <span class="data-summary-label">Columns</span>
+                <span class="data-summary-value">${columns}</span>
             </div>
             <div class="data-summary-item">
-                <span class="data-summary-label">Reports</span>
-                <span class="data-summary-value">${reports}</span>
+                <span class="data-summary-label">Rows</span>
+                <span class="data-summary-value">${rows}</span>
             </div>
-            <div class="data-summary-item">
-                <span class="data-summary-label">Dashboards</span>
-                <span class="data-summary-value">${dashboards}</span>
+            <div class="data-summary-item" style="flex-direction: column; align-items: flex-start;">
+                <span class="data-summary-label" style="margin-bottom: 4px;">Fields:</span>
+                <span class="data-summary-value" style="font-size: 11px; word-break: break-word;">
+                    ${data.columns?.slice(0, 5).join(', ')}${data.columns?.length > 5 ? '...' : ''}
+                </span>
             </div>
         `;
     },
@@ -174,7 +142,7 @@ const ui = {
         elements.chatMessages.appendChild(messageDiv);
         this.scrollToBottom();
 
-        // Apply syntax highlighting to code blocks
+        // Apply syntax highlighting
         messageDiv.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightElement(block);
         });
@@ -204,9 +172,7 @@ const ui = {
 
     removeTypingIndicator() {
         const indicator = document.getElementById('typing-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
+        if (indicator) indicator.remove();
     },
 
     scrollToBottom() {
@@ -214,7 +180,6 @@ const ui = {
     },
 
     clearChat() {
-        // Keep only the welcome message
         const messages = elements.chatMessages.querySelectorAll('.message');
         messages.forEach((msg, index) => {
             if (index > 0) msg.remove();
@@ -237,6 +202,10 @@ const ui = {
         `;
         elements.chatMessages.appendChild(errorDiv);
         this.scrollToBottom();
+    },
+
+    showSuccess(message) {
+        ui.addMessage('assistant', message);
     }
 };
 
@@ -248,26 +217,54 @@ function escapeHtml(text) {
 }
 
 // Event Handlers
+async function handleParseData() {
+    const text = elements.dataInput.value.trim();
+    if (!text) {
+        ui.showError('Please paste some data first');
+        return;
+    }
+
+    ui.showLoading('Parsing data...');
+
+    try {
+        const result = await api.parseData(text);
+
+        if (result.success && result.data && !result.data.error) {
+            state.parsedData = result.data;
+            ui.updateDataSummary(result.data);
+            ui.showSuccess(`Data loaded successfully! Found **${result.data.row_count} rows** and **${result.data.columns.length} columns**. You can now ask questions about your data.`);
+        } else {
+            ui.showError(result.data?.error || result.error || 'Could not parse the data. Try copying it again.');
+        }
+    } catch (error) {
+        ui.showError('Failed to parse data: ' + error.message);
+    }
+
+    ui.hideLoading();
+}
+
+function handleClearData() {
+    elements.dataInput.value = '';
+    state.parsedData = null;
+    ui.updateDataSummary(null);
+}
+
 async function handleSendMessage(e) {
     e.preventDefault();
 
     const question = elements.chatInput.value.trim();
     if (!question) return;
 
-    // Clear input
     elements.chatInput.value = '';
     elements.chatInput.style.height = 'auto';
 
-    // Add user message
     ui.addMessage('user', question);
 
-    // Add to conversation history
     state.conversationHistory.push({
         role: 'user',
         content: question
     });
 
-    // Show typing indicator
     ui.addTypingIndicator();
     elements.sendBtn.disabled = true;
 
@@ -275,9 +272,8 @@ async function handleSendMessage(e) {
         const result = await api.chat(
             question,
             state.selectedModel,
-            state.selectedWorkspace,
-            state.powerbiData,
-            state.conversationHistory.slice(0, -1) // Exclude last message as it's part of the question
+            state.parsedData,
+            state.conversationHistory.slice(0, -1)
         );
 
         ui.removeTypingIndicator();
@@ -285,13 +281,11 @@ async function handleSendMessage(e) {
         if (result.success) {
             ui.addMessage('assistant', result.response);
 
-            // Add to conversation history
             state.conversationHistory.push({
                 role: 'assistant',
                 content: result.response
             });
 
-            // Update token usage
             state.totalInputTokens += result.usage.input_tokens;
             state.totalOutputTokens += result.usage.output_tokens;
             ui.updateTokenUsage();
@@ -306,81 +300,18 @@ async function handleSendMessage(e) {
     elements.sendBtn.disabled = false;
 }
 
-async function handleConnect() {
-    ui.showLoading('Connecting to Power BI...');
-
-    try {
-        const result = await api.getWorkspaces();
-
-        if (result.success && result.workspaces.length > 0) {
-            // Populate workspace dropdown
-            elements.workspaceSelect.innerHTML = '<option value="">Select workspace...</option>';
-            result.workspaces.forEach(ws => {
-                const option = document.createElement('option');
-                option.value = ws.id;
-                option.textContent = ws.name;
-                elements.workspaceSelect.appendChild(option);
-            });
-
-            elements.workspaceSection.style.display = 'block';
-            ui.updateConnectionStatus(true);
-            elements.connectBtn.style.display = 'none';
-            elements.refreshBtn.style.display = 'block';
-        } else if (result.success) {
-            ui.showError('No workspaces found. Make sure you have access to at least one Power BI workspace.');
-            ui.updateConnectionStatus(false);
-        } else {
-            ui.showError(result.error || 'Failed to connect to Power BI');
-            ui.updateConnectionStatus(false, true);
-        }
-    } catch (error) {
-        ui.showError('Connection failed: ' + error.message);
-        ui.updateConnectionStatus(false, true);
-    }
-
-    ui.hideLoading();
-}
-
-async function handleWorkspaceChange(e) {
-    const workspaceId = e.target.value;
-    if (!workspaceId) {
-        state.selectedWorkspace = null;
-        state.powerbiData = null;
-        ui.updateDataSummary(null);
-        return;
-    }
-
-    ui.showLoading('Loading workspace data...');
-
-    try {
-        const result = await api.getWorkspaceData(workspaceId);
-
-        if (result.success) {
-            state.selectedWorkspace = workspaceId;
-            state.powerbiData = result.data;
-            ui.updateDataSummary(result.data);
-        } else {
-            ui.showError(result.error || 'Failed to load workspace data');
-        }
-    } catch (error) {
-        ui.showError('Failed to load workspace: ' + error.message);
-    }
-
-    ui.hideLoading();
-}
-
 function handleQuickAction(action) {
     let question = '';
 
     switch (action) {
-        case 'explain-schema':
-            question = 'Can you explain the schema of my Power BI data? What tables, columns, and relationships exist?';
+        case 'summarize':
+            question = 'Please summarize this data. What are the key statistics and what does this data represent?';
             break;
-        case 'suggest-queries':
-            question = 'Based on my data structure, what are some useful DAX queries I could run to get insights?';
+        case 'insights':
+            question = 'What patterns, trends, or interesting insights can you find in this data?';
             break;
-        case 'find-insights':
-            question = 'What potential insights or analysis opportunities do you see in my Power BI data?';
+        case 'issues':
+            question = 'Are there any data quality issues, missing values, or anomalies in this data?';
             break;
     }
 
@@ -402,49 +333,18 @@ function handleKeyDown(e) {
     }
 }
 
-// Initialize Application
-async function init() {
-    // Load available models
-    try {
-        const result = await api.getModels();
-        if (result.success) {
-            elements.modelSelect.innerHTML = '';
-            result.models.forEach((model, index) => {
-                const option = document.createElement('option');
-                option.value = model.id;
-                option.textContent = model.name;
-                if (index === 0) {
-                    option.selected = true;
-                    state.selectedModel = model.id;
-                }
-                elements.modelSelect.appendChild(option);
-            });
-        }
-    } catch (error) {
-        console.error('Failed to load models:', error);
-        elements.modelSelect.innerHTML = '<option value="claude-sonnet-4-5-20250929">Claude Sonnet 4.5</option>';
-        state.selectedModel = 'claude-sonnet-4-5-20250929';
-    }
-
-    // Check health
-    try {
-        const health = await api.healthCheck();
-        console.log('Health check:', health);
-    } catch (error) {
-        console.error('Health check failed:', error);
-    }
-
+// Initialize
+function init() {
     // Event Listeners
     elements.chatForm.addEventListener('submit', handleSendMessage);
     elements.chatInput.addEventListener('input', handleInputResize);
     elements.chatInput.addEventListener('keydown', handleKeyDown);
-    elements.connectBtn.addEventListener('click', handleConnect);
-    elements.refreshBtn.addEventListener('click', handleConnect);
+    elements.parseBtn.addEventListener('click', handleParseData);
+    elements.clearDataBtn.addEventListener('click', handleClearData);
     elements.clearChatBtn.addEventListener('click', () => ui.clearChat());
     elements.modelSelect.addEventListener('change', (e) => {
         state.selectedModel = e.target.value;
     });
-    elements.workspaceSelect.addEventListener('change', handleWorkspaceChange);
 
     // Quick actions
     document.querySelectorAll('.quick-action-btn').forEach(btn => {
@@ -452,7 +352,16 @@ async function init() {
             handleQuickAction(btn.dataset.action);
         });
     });
+
+    // Allow paste directly into data textarea
+    elements.dataInput.addEventListener('paste', (e) => {
+        // Let the paste happen, then auto-parse after a short delay
+        setTimeout(() => {
+            if (elements.dataInput.value.trim()) {
+                handleParseData();
+            }
+        }, 100);
+    });
 }
 
-// Start the application
 document.addEventListener('DOMContentLoaded', init);
