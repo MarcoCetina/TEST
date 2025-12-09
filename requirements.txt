@@ -1,0 +1,19 @@
+# Flask web framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# Anthropic Claude API
+anthropic==0.39.0
+
+# Microsoft Authentication Library for Power BI
+msal==1.28.0
+requests==2.31.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# For async operations
+aiohttp==3.9.1
+
+# Utilities
+pandas==2.1.4
