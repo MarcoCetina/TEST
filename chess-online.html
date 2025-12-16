@@ -64,7 +64,7 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 15px;
-            padding: 10px;
+            padding: 15px;
             background: rgba(0,0,0,0.2);
             border-radius: 8px;
         }
@@ -83,6 +83,7 @@
 
         .status-dot.connected {
             background: #22c55e;
+            animation: none;
         }
 
         @keyframes pulse {
@@ -90,133 +91,43 @@
             50% { opacity: 0.5; }
         }
 
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .game-id-display {
-            background: rgba(0,0,0,0.3);
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .game-id-display:hover {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .game-id-display .label {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-bottom: 5px;
-        }
-
-        .game-id-display .id {
-            font-size: 1.5rem;
-            font-weight: bold;
-            font-family: monospace;
-            color: #fbbf24;
-            letter-spacing: 2px;
-        }
-
-        .game-id-display .hint {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 5px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            background: rgba(0,0,0,0.3);
-            color: #fff;
-            font-size: 1.1rem;
-            text-align: center;
-            font-family: monospace;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        input[type="text"]::placeholder {
-            color: #64748b;
-            letter-spacing: normal;
-            text-transform: none;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 15px 0;
-            color: #64748b;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(255,255,255,0.2);
-        }
-
-        .divider span {
-            padding: 0 15px;
-            font-size: 0.9rem;
-        }
-
-        .instructions {
+        .waiting-message {
             background: rgba(59, 130, 246, 0.2);
             border: 1px solid rgba(59, 130, 246, 0.3);
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.95rem;
             line-height: 1.6;
         }
 
-        .instructions strong {
-            color: #60a5fa;
+        .waiting-message .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .connected-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .connected-message .check {
+            font-size: 2rem;
+            margin-bottom: 5px;
         }
 
         /* Chess Board */
@@ -246,6 +157,12 @@
         .player-info.active {
             background: rgba(34, 197, 94, 0.3);
             border: 1px solid #22c55e;
+        }
+
+        .player-info.you::after {
+            content: ' (You)';
+            font-size: 0.8rem;
+            color: #fbbf24;
         }
 
         .player-color {
@@ -476,12 +393,24 @@
         }
 
         /* New Game Button */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
         .btn-new-game {
             margin-top: 15px;
             background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
         }
 
         .btn-new-game:hover {
+            transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(245, 158, 11, 0.4);
         }
 
@@ -507,8 +436,8 @@
             }
         }
 
-        /* Copy notification */
-        .copy-notification {
+        /* Notification */
+        .notification {
             position: fixed;
             bottom: 20px;
             left: 50%;
@@ -523,93 +452,41 @@
             z-index: 1000;
         }
 
-        .copy-notification.show {
+        .notification.show {
             opacity: 1;
-        }
-
-        /* Loading spinner */
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .share-link {
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 0.8rem;
-            word-break: break-all;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .share-link:hover {
-            background: rgba(16, 185, 129, 0.3);
-        }
-
-        .share-link .label {
-            color: #6ee7b7;
-            font-weight: 600;
-            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <h1>&#9822; Chess Online</h1>
-    <p class="subtitle">Play chess with friends - just share the Game ID!</p>
+    <p class="subtitle">Open this page with a friend to play together!</p>
 
     <div class="container">
         <!-- Connection Panel -->
         <div class="connection-panel">
-            <h3>&#127922; Start or Join a Game</h3>
+            <h3>&#128279; Connection Status</h3>
 
             <div class="status">
                 <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Initializing...</span>
+                <span id="statusText">Connecting...</span>
             </div>
 
-            <div class="instructions">
-                <strong>How to play:</strong><br>
-                1. Click "Create Game" to host<br>
-                2. Share the Game ID with your friend<br>
-                3. Your friend enters the ID and clicks "Join"<br>
-                4. Start playing!
+            <div id="waitingMessage" class="waiting-message">
+                <div class="spinner"></div>
+                <div><strong>Waiting for opponent...</strong></div>
+                <div style="margin-top: 10px; font-size: 0.85rem; color: #94a3b8;">
+                    Share this page with a friend!<br>
+                    They just need to open the same link.
+                </div>
             </div>
 
-            <button class="btn btn-primary" id="createGameBtn" onclick="createGame()" disabled>
-                &#127922; Create Game (Play as White)
-            </button>
-
-            <div id="gameIdDisplay" class="game-id-display" style="display: none;" onclick="copyGameId()">
-                <div class="label">YOUR GAME ID (click to copy)</div>
-                <div class="id" id="gameIdText"></div>
-                <div class="hint">Share this with your friend!</div>
+            <div id="connectedMessage" class="connected-message" style="display: none;">
+                <div class="check">&#9989;</div>
+                <div><strong>Connected!</strong></div>
+                <div style="margin-top: 5px; font-size: 0.85rem; color: #6ee7b7;">
+                    Game is ready to play
+                </div>
             </div>
-
-            <div id="shareLink" class="share-link" style="display: none;" onclick="copyShareLink()">
-                <div class="label">Or share this direct link:</div>
-                <div id="shareLinkText"></div>
-            </div>
-
-            <div class="divider"><span>OR</span></div>
-
-            <input type="text" id="joinGameId" placeholder="Enter friend's Game ID" maxlength="6">
-            <button class="btn btn-secondary" id="joinGameBtn" onclick="joinGame()" disabled>
-                &#129309; Join Game (Play as Black)
-            </button>
         </div>
 
         <!-- Game Area -->
@@ -628,7 +505,7 @@
             <div class="chess-board" id="board"></div>
 
             <div class="game-message waiting" id="gameMessage">
-                Create a game or join one to start playing!
+                Waiting for opponent to connect...
             </div>
 
             <button class="btn btn-new-game" onclick="requestNewGame()" id="newGameBtn" style="display:none;">
@@ -641,7 +518,7 @@
             <h3>&#128172; Chat</h3>
             <div class="chat-messages" id="chatMessages">
                 <div class="chat-message system">
-                    Connect to a game to start chatting...
+                    Waiting for opponent to connect...
                 </div>
             </div>
             <div class="chat-input-area">
@@ -659,8 +536,8 @@
         </div>
     </div>
 
-    <!-- Copy Notification -->
-    <div class="copy-notification" id="copyNotification">Copied to clipboard!</div>
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
 
     <script>
         // ============ CHESS GAME LOGIC ============
@@ -675,6 +552,9 @@
         const PIECE_VALUES = {
             'K': 'KING', 'Q': 'QUEEN', 'R': 'ROOK', 'B': 'BISHOP', 'N': 'KNIGHT', 'P': 'PAWN'
         };
+
+        // Room ID based on the page URL (so different URLs = different rooms)
+        const ROOM_ID = 'chess-' + btoa(window.location.pathname).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
 
         let gameState = {
             board: [],
@@ -694,7 +574,7 @@
         let pendingPromotion = null;
         let peer = null;
         let conn = null;
-        let myGameId = null;
+        let isHost = false;
 
         // Initialize board
         function initializeBoard() {
@@ -732,10 +612,6 @@
             const boardEl = document.getElementById('board');
             boardEl.innerHTML = '';
 
-            const displayBoard = myColor === 'black' ?
-                gameState.board.slice().reverse().map(row => row.slice().reverse()) :
-                gameState.board;
-
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const actualRow = myColor === 'black' ? 7 - row : row;
@@ -755,20 +631,17 @@
                         square.appendChild(pieceEl);
                     }
 
-                    // Highlight selected square
                     if (gameState.selectedSquare &&
                         gameState.selectedSquare.row === actualRow &&
                         gameState.selectedSquare.col === actualCol) {
                         square.classList.add('selected');
                     }
 
-                    // Highlight valid moves
                     if (gameState.validMoves.some(m => m.row === actualRow && m.col === actualCol)) {
                         square.classList.add('valid-move');
                         if (piece) square.classList.add('has-piece');
                     }
 
-                    // Highlight last move
                     if (gameState.lastMove) {
                         if ((gameState.lastMove.from.row === actualRow && gameState.lastMove.from.col === actualCol) ||
                             (gameState.lastMove.to.row === actualRow && gameState.lastMove.to.col === actualCol)) {
@@ -776,7 +649,6 @@
                         }
                     }
 
-                    // Highlight check
                     if (gameState.isCheck && piece) {
                         const pieceColor = piece[0] === 'w' ? 'white' : 'black';
                         if (piece[1] === 'K' && pieceColor === gameState.turn) {
@@ -793,8 +665,14 @@
         }
 
         function updateTurnIndicator() {
-            document.getElementById('whitePlayer').classList.toggle('active', gameState.turn === 'white');
-            document.getElementById('blackPlayer').classList.toggle('active', gameState.turn === 'black');
+            const whiteEl = document.getElementById('whitePlayer');
+            const blackEl = document.getElementById('blackPlayer');
+
+            whiteEl.classList.toggle('active', gameState.turn === 'white');
+            blackEl.classList.toggle('active', gameState.turn === 'black');
+
+            whiteEl.classList.toggle('you', myColor === 'white');
+            blackEl.classList.toggle('you', myColor === 'black');
         }
 
         function handleSquareClick(row, col) {
@@ -803,13 +681,11 @@
 
             const piece = gameState.board[row][col];
 
-            // If clicking on valid move, make the move
             if (gameState.selectedSquare && gameState.validMoves.some(m => m.row === row && m.col === col)) {
                 makeMove(gameState.selectedSquare.row, gameState.selectedSquare.col, row, col);
                 return;
             }
 
-            // If clicking on own piece, select it
             if (piece && ((piece[0] === 'w' && myColor === 'white') || (piece[0] === 'b' && myColor === 'black'))) {
                 gameState.selectedSquare = { row, col };
                 gameState.validMoves = getValidMoves(row, col);
@@ -838,7 +714,6 @@
                 case 'K': moves = getKingMoves(row, col, color); break;
             }
 
-            // Filter out moves that would leave king in check
             return moves.filter(move => !wouldBeInCheck(row, col, move.row, move.col, color));
         }
 
@@ -847,16 +722,13 @@
             const direction = color === 'white' ? -1 : 1;
             const startRow = color === 'white' ? 6 : 1;
 
-            // Forward move
             if (isValidSquare(row + direction, col) && !gameState.board[row + direction][col]) {
                 moves.push({ row: row + direction, col });
-                // Double move from start
                 if (row === startRow && !gameState.board[row + 2 * direction][col]) {
                     moves.push({ row: row + 2 * direction, col });
                 }
             }
 
-            // Captures
             for (const dc of [-1, 1]) {
                 const newCol = col + dc;
                 if (isValidSquare(row + direction, newCol)) {
@@ -864,7 +736,6 @@
                     if (target && target[0] !== (color === 'white' ? 'w' : 'b')) {
                         moves.push({ row: row + direction, col: newCol });
                     }
-                    // En passant
                     if (gameState.enPassantTarget &&
                         gameState.enPassantTarget.row === row + direction &&
                         gameState.enPassantTarget.col === newCol) {
@@ -945,12 +816,10 @@
                 }
             }
 
-            // Castling
             const rights = gameState.castlingRights[color];
             const kingRow = color === 'white' ? 7 : 0;
 
             if (!isInCheck(color)) {
-                // King side
                 if (rights.kingSide &&
                     !gameState.board[kingRow][5] &&
                     !gameState.board[kingRow][6] &&
@@ -958,7 +827,6 @@
                     !isSquareAttacked(kingRow, 6, color)) {
                     moves.push({ row: kingRow, col: 6, castling: 'kingSide' });
                 }
-                // Queen side
                 if (rights.queenSide &&
                     !gameState.board[kingRow][1] &&
                     !gameState.board[kingRow][2] &&
@@ -980,7 +848,6 @@
             const enemyColor = byColor === 'white' ? 'black' : 'white';
             const enemyPrefix = enemyColor === 'white' ? 'w' : 'b';
 
-            // Check all enemy pieces
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const piece = gameState.board[r][c];
@@ -1051,13 +918,11 @@
         }
 
         function wouldBeInCheck(fromRow, fromCol, toRow, toCol, color) {
-            // Make temporary move
             const originalPiece = gameState.board[toRow][toCol];
             const movingPiece = gameState.board[fromRow][fromCol];
             gameState.board[toRow][toCol] = movingPiece;
             gameState.board[fromRow][fromCol] = '';
 
-            // Handle en passant capture
             let enPassantCaptured = null;
             if (movingPiece[1] === 'P' && gameState.enPassantTarget &&
                 toRow === gameState.enPassantTarget.row && toCol === gameState.enPassantTarget.col) {
@@ -1068,7 +933,6 @@
 
             const inCheck = isInCheck(color);
 
-            // Undo move
             gameState.board[fromRow][fromCol] = movingPiece;
             gameState.board[toRow][toCol] = originalPiece;
             if (enPassantCaptured !== null) {
@@ -1084,7 +948,6 @@
             const color = piece[0] === 'w' ? 'white' : 'black';
             const moveData = gameState.validMoves.find(m => m.row === toRow && m.col === toCol);
 
-            // Check for pawn promotion
             if (piece[1] === 'P' && (toRow === 0 || toRow === 7)) {
                 if (!promotionPiece) {
                     pendingPromotion = { fromRow, fromCol, toRow, toCol };
@@ -1093,17 +956,14 @@
                 }
             }
 
-            // Execute move
             gameState.board[toRow][toCol] = promotionPiece || piece;
             gameState.board[fromRow][fromCol] = '';
 
-            // Handle en passant capture
             if (moveData && moveData.enPassant) {
                 const captureRow = color === 'white' ? toRow + 1 : toRow - 1;
                 gameState.board[captureRow][toCol] = '';
             }
 
-            // Handle castling
             if (moveData && moveData.castling) {
                 const row = color === 'white' ? 7 : 0;
                 if (moveData.castling === 'kingSide') {
@@ -1115,7 +975,6 @@
                 }
             }
 
-            // Update castling rights
             if (piece[1] === 'K') {
                 gameState.castlingRights[color].kingSide = false;
                 gameState.castlingRights[color].queenSide = false;
@@ -1125,25 +984,18 @@
                 if (fromCol === 7) gameState.castlingRights[color].kingSide = false;
             }
 
-            // Update en passant target
             if (piece[1] === 'P' && Math.abs(toRow - fromRow) === 2) {
                 gameState.enPassantTarget = { row: (fromRow + toRow) / 2, col: fromCol };
             } else {
                 gameState.enPassantTarget = null;
             }
 
-            // Update last move
             gameState.lastMove = { from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol } };
-
-            // Switch turn
             gameState.turn = gameState.turn === 'white' ? 'black' : 'white';
             gameState.selectedSquare = null;
             gameState.validMoves = [];
-
-            // Check for check
             gameState.isCheck = isInCheck(gameState.turn);
 
-            // Check for checkmate or stalemate
             if (!hasValidMoves(gameState.turn)) {
                 gameState.gameOver = true;
                 if (gameState.isCheck) {
@@ -1160,8 +1012,6 @@
             }
 
             renderBoard();
-
-            // Send move to opponent
             sendData({ type: 'move', move: { fromRow, fromCol, toRow, toCol, promotionPiece: promotionPiece ? promotionPiece : null } });
         }
 
@@ -1203,16 +1053,12 @@
 
         function receiveMove(moveData) {
             const { fromRow, fromCol, toRow, toCol, promotionPiece } = moveData;
-
-            // Validate it's opponent's turn
             const piece = gameState.board[fromRow][fromCol];
             if (!piece) return;
 
-            // Execute opponent's move
             gameState.board[toRow][toCol] = promotionPiece || piece;
             gameState.board[fromRow][fromCol] = '';
 
-            // Handle en passant
             const color = piece[0] === 'w' ? 'white' : 'black';
             if (piece[1] === 'P' && gameState.enPassantTarget &&
                 toRow === gameState.enPassantTarget.row && toCol === gameState.enPassantTarget.col) {
@@ -1220,7 +1066,6 @@
                 gameState.board[captureRow][toCol] = '';
             }
 
-            // Handle castling
             if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
                 const row = color === 'white' ? 7 : 0;
                 if (toCol === 6) {
@@ -1232,7 +1077,6 @@
                 }
             }
 
-            // Update castling rights
             if (piece[1] === 'K') {
                 gameState.castlingRights[color].kingSide = false;
                 gameState.castlingRights[color].queenSide = false;
@@ -1242,7 +1086,6 @@
                 if (fromCol === 7) gameState.castlingRights[color].kingSide = false;
             }
 
-            // Update en passant
             if (piece[1] === 'P' && Math.abs(toRow - fromRow) === 2) {
                 gameState.enPassantTarget = { row: (fromRow + toRow) / 2, col: fromCol };
             } else {
@@ -1277,89 +1120,66 @@
             el.className = 'game-message ' + className;
         }
 
-        // ============ PEERJS CONNECTION ============
+        // ============ AUTO-MATCHMAKING CONNECTION ============
 
-        function generateGameId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = '';
-            for (let i = 0; i < 6; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
+        function initializeConnection() {
+            updateStatus('connecting', 'Looking for opponent...');
+
+            // First, try to connect as a guest (second player)
+            tryToJoin();
         }
 
-        function initializePeer() {
-            updateStatus('connecting', 'Connecting to server...');
+        function tryToJoin() {
+            peer = new Peer({ debug: 0 });
 
-            peer = new Peer({
-                debug: 1
-            });
+            peer.on('open', () => {
+                // Try to connect to existing host
+                conn = peer.connect(ROOM_ID, { reliable: true });
 
-            peer.on('open', (id) => {
-                updateStatus('ready', 'Ready to play!');
-                document.getElementById('createGameBtn').disabled = false;
-                document.getElementById('joinGameBtn').disabled = false;
-            });
+                conn.on('open', () => {
+                    // Successfully connected as guest (black)
+                    myColor = 'black';
+                    isHost = false;
+                    onConnected();
+                });
 
-            peer.on('connection', (connection) => {
-                if (conn) {
-                    connection.close();
-                    return;
-                }
-                conn = connection;
-                setupConnection();
+                conn.on('error', () => {
+                    // No host found, become the host
+                    becomeHost();
+                });
+
+                // Timeout - if can't connect in 3 seconds, become host
+                setTimeout(() => {
+                    if (!isConnected && !isHost) {
+                        conn.close();
+                        becomeHost();
+                    }
+                }, 3000);
             });
 
             peer.on('error', (err) => {
-                console.error('Peer error:', err);
                 if (err.type === 'peer-unavailable') {
-                    showNotification('Game not found. Check the Game ID.');
-                    updateStatus('ready', 'Ready to play!');
-                    document.getElementById('joinGameBtn').disabled = false;
-                    document.getElementById('joinGameBtn').innerHTML = '&#129309; Join Game (Play as Black)';
-                } else if (err.type === 'unavailable-id') {
-                    // Try with a different ID
-                    myGameId = 'chess-' + generateGameId();
-                    createGame();
+                    becomeHost();
                 } else {
+                    console.error('Peer error:', err);
                     updateStatus('error', 'Connection error. Please refresh.');
                 }
             });
-
-            peer.on('disconnected', () => {
-                updateStatus('disconnected', 'Disconnected. Reconnecting...');
-                peer.reconnect();
-            });
         }
 
-        function createGame() {
-            myColor = 'white';
-            myGameId = 'chess-' + generateGameId();
-
-            document.getElementById('createGameBtn').disabled = true;
-            document.getElementById('joinGameBtn').disabled = true;
-            document.getElementById('createGameBtn').innerHTML = '<span class="spinner"></span>Creating...';
-
-            // Destroy old peer and create new one with specific ID
+        function becomeHost() {
+            // Destroy current peer and create new one as host
             if (peer) {
                 peer.destroy();
             }
 
-            peer = new Peer(myGameId, { debug: 1 });
+            peer = new Peer(ROOM_ID, { debug: 0 });
 
-            peer.on('open', (id) => {
-                const displayId = id.replace('chess-', '');
-                document.getElementById('gameIdText').textContent = displayId;
-                document.getElementById('gameIdDisplay').style.display = 'block';
-
-                // Generate share link
-                const shareUrl = window.location.href.split('?')[0] + '?join=' + displayId;
-                document.getElementById('shareLinkText').textContent = shareUrl;
-                document.getElementById('shareLink').style.display = 'block';
-
-                document.getElementById('createGameBtn').innerHTML = '&#127922; Game Created!';
-                updateStatus('waiting', 'Waiting for opponent...');
-                updateGameMessage('Waiting for opponent to join with ID: ' + displayId, 'waiting');
+            peer.on('open', () => {
+                isHost = true;
+                myColor = 'white';
+                updateStatus('connecting', 'Waiting for opponent...');
+                document.getElementById('waitingMessage').style.display = 'block';
             });
 
             peer.on('connection', (connection) => {
@@ -1368,41 +1188,13 @@
             });
 
             peer.on('error', (err) => {
-                console.error('Peer error:', err);
                 if (err.type === 'unavailable-id') {
-                    myGameId = 'chess-' + generateGameId();
-                    createGame();
+                    // Someone else is hosting, try to join again
+                    setTimeout(tryToJoin, 1000);
+                } else {
+                    console.error('Host error:', err);
+                    updateStatus('error', 'Connection error. Please refresh.');
                 }
-            });
-        }
-
-        function joinGame() {
-            const gameId = document.getElementById('joinGameId').value.trim().toUpperCase();
-
-            if (!gameId) {
-                showNotification('Please enter a Game ID');
-                return;
-            }
-
-            myColor = 'black';
-            document.getElementById('createGameBtn').disabled = true;
-            document.getElementById('joinGameBtn').disabled = true;
-            document.getElementById('joinGameBtn').innerHTML = '<span class="spinner"></span>Joining...';
-            updateStatus('connecting', 'Connecting to game...');
-
-            const fullId = 'chess-' + gameId;
-            conn = peer.connect(fullId, { reliable: true });
-
-            conn.on('open', () => {
-                setupConnection();
-            });
-
-            conn.on('error', (err) => {
-                console.error('Connection error:', err);
-                showNotification('Failed to connect. Check the Game ID.');
-                updateStatus('ready', 'Ready to play!');
-                document.getElementById('joinGameBtn').disabled = false;
-                document.getElementById('joinGameBtn').innerHTML = '&#129309; Join Game (Play as Black)';
             });
         }
 
@@ -1418,14 +1210,23 @@
             conn.on('close', () => {
                 isConnected = false;
                 updateStatus('disconnected', 'Opponent disconnected');
-                addChatMessage('Opponent disconnected.', 'system');
+                document.getElementById('waitingMessage').style.display = 'block';
+                document.getElementById('connectedMessage').style.display = 'none';
+                addChatMessage('Opponent disconnected. Waiting for new opponent...', 'system');
+
+                // Go back to waiting for new opponent
+                if (isHost) {
+                    // Already hosting, just wait
+                } else {
+                    // Try to reconnect
+                    setTimeout(initializeConnection, 1000);
+                }
             });
 
             conn.on('error', (err) => {
                 console.error('Connection error:', err);
             });
 
-            // If already open (for the initiator)
             if (conn.open) {
                 onConnected();
             }
@@ -1433,22 +1234,18 @@
 
         function onConnected() {
             isConnected = true;
-            updateStatus('connected', `Connected as ${myColor}`);
+            updateStatus('connected', `Connected! You are ${myColor}`);
+
+            document.getElementById('waitingMessage').style.display = 'none';
+            document.getElementById('connectedMessage').style.display = 'block';
             document.getElementById('chatInput').disabled = false;
             document.getElementById('chatSendBtn').disabled = false;
 
-            // Hide connection controls
-            document.getElementById('createGameBtn').style.display = 'none';
-            document.getElementById('joinGameBtn').style.display = 'none';
-            document.getElementById('joinGameId').style.display = 'none';
-            document.querySelector('.divider').style.display = 'none';
-
             initializeBoard();
             renderBoard();
-            updateGameMessage(`Game started! ${myColor === 'white' ? 'Your' : "Opponent's"} turn.`);
-            addChatMessage('Connected! You are playing as ' + myColor + '.', 'system');
+            updateGameMessage(`Game started! ${myColor === 'white' ? 'Your' : "Opponent's"} turn`);
+            addChatMessage(`Connected! You are playing as ${myColor}.`, 'system');
 
-            // Send ready message
             sendData({ type: 'ready', color: myColor });
         }
 
@@ -1487,7 +1284,7 @@
 
             dot.className = 'status-dot';
             if (state === 'connected') dot.classList.add('connected');
-            if (state === 'connecting' || state === 'waiting') dot.classList.add('connecting');
+            if (state === 'connecting') dot.classList.add('connecting');
 
             statusText.textContent = text;
         }
@@ -1546,54 +1343,23 @@
             initializeBoard();
             renderBoard();
             document.getElementById('newGameBtn').style.display = 'none';
-            updateGameMessage(`New game started! ${myColor === 'white' ? 'Your' : "Opponent's"} turn.`);
+            updateGameMessage(`New game started! ${myColor === 'white' ? 'Your' : "Opponent's"} turn`);
             addChatMessage('New game started!', 'system');
         }
 
         // ============ UTILITY ============
 
         function showNotification(message) {
-            const notification = document.getElementById('copyNotification');
+            const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
-        function copyGameId() {
-            const gameId = document.getElementById('gameIdText').textContent;
-            navigator.clipboard.writeText(gameId).then(() => {
-                showNotification('Game ID copied: ' + gameId);
-            });
-        }
-
-        function copyShareLink() {
-            const link = document.getElementById('shareLinkText').textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                showNotification('Share link copied!');
-            });
-        }
-
-        // Check URL for join parameter
-        function checkUrlForJoin() {
-            const params = new URLSearchParams(window.location.search);
-            const joinId = params.get('join');
-            if (joinId) {
-                document.getElementById('joinGameId').value = joinId.toUpperCase();
-                // Auto-join after peer is ready
-                const checkPeer = setInterval(() => {
-                    if (peer && peer.open) {
-                        clearInterval(checkPeer);
-                        joinGame();
-                    }
-                }, 100);
-            }
-        }
-
         // Initialize
         initializeBoard();
         renderBoard();
-        initializePeer();
-        checkUrlForJoin();
+        initializeConnection();
     </script>
 </body>
 </html>
