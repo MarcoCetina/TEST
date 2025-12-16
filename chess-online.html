@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Online - P2P</title>
+    <title>Chess Online - Play with Friends</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -76,6 +77,10 @@
             animation: pulse 2s infinite;
         }
 
+        .status-dot.connecting {
+            background: #f59e0b;
+        }
+
         .status-dot.connected {
             background: #22c55e;
         }
@@ -120,25 +125,84 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
+            transform: none !important;
+            box-shadow: none !important;
         }
 
-        textarea {
+        .game-id-display {
+            background: rgba(0,0,0,0.3);
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-id-display:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .game-id-display .label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .game-id-display .id {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: #fbbf24;
+            letter-spacing: 2px;
+        }
+
+        .game-id-display .hint {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        input[type="text"] {
             width: 100%;
-            height: 80px;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 8px;
             background: rgba(0,0,0,0.3);
             color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
             font-family: monospace;
-            font-size: 0.75rem;
-            resize: none;
+            letter-spacing: 2px;
             margin-bottom: 10px;
+            text-transform: uppercase;
         }
 
-        textarea::placeholder {
+        input[type="text"]::placeholder {
             color: #64748b;
+            letter-spacing: normal;
+            text-transform: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            color: #64748b;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
         }
 
         .instructions {
@@ -148,15 +212,11 @@
             padding: 12px;
             margin-bottom: 15px;
             font-size: 0.85rem;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
-        .instructions ol {
-            margin-left: 20px;
-        }
-
-        .instructions li {
-            margin-bottom: 5px;
+        .instructions strong {
+            color: #60a5fa;
         }
 
         /* Chess Board */
@@ -274,6 +334,7 @@
             border-radius: 8px;
             font-size: 1.1rem;
             text-align: center;
+            max-width: 480px;
         }
 
         .game-message.checkmate {
@@ -284,6 +345,11 @@
 
         .game-message.stalemate {
             background: rgba(100, 116, 139, 0.5);
+        }
+
+        .game-message.waiting {
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.5);
         }
 
         /* Chat */
@@ -311,6 +377,7 @@
             background: rgba(255,255,255,0.1);
             border-radius: 6px;
             font-size: 0.9rem;
+            word-break: break-word;
         }
 
         .chat-message.system {
@@ -434,6 +501,10 @@
                 width: 100%;
                 max-width: 400px;
             }
+
+            h1 {
+                font-size: 1.8rem;
+            }
         }
 
         /* Copy notification */
@@ -444,56 +515,100 @@
             transform: translateX(-50%);
             background: #22c55e;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             opacity: 0;
             transition: opacity 0.3s ease;
+            font-weight: 600;
+            z-index: 1000;
         }
 
         .copy-notification.show {
             opacity: 1;
         }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .share-link {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            word-break: break-all;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .share-link:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .share-link .label {
+            color: #6ee7b7;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
     <h1>&#9822; Chess Online</h1>
-    <p class="subtitle">Peer-to-Peer Chess - No server required!</p>
+    <p class="subtitle">Play chess with friends - just share the Game ID!</p>
 
     <div class="container">
         <!-- Connection Panel -->
         <div class="connection-panel">
-            <h3>&#128279; Connection</h3>
+            <h3>&#127922; Start or Join a Game</h3>
 
             <div class="status">
                 <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Not Connected</span>
+                <span id="statusText">Initializing...</span>
             </div>
 
             <div class="instructions">
-                <strong>How to connect:</strong>
-                <ol>
-                    <li>Player 1: Click "Create Game"</li>
-                    <li>Player 1: Copy & send code to friend</li>
-                    <li>Player 2: Paste code & click "Join Game"</li>
-                    <li>Player 2: Copy & send answer to Player 1</li>
-                    <li>Player 1: Paste answer & click "Connect"</li>
-                </ol>
+                <strong>How to play:</strong><br>
+                1. Click "Create Game" to host<br>
+                2. Share the Game ID with your friend<br>
+                3. Your friend enters the ID and clicks "Join"<br>
+                4. Start playing!
             </div>
 
-            <button class="btn btn-primary" id="createGame" onclick="createGame()">
+            <button class="btn btn-primary" id="createGameBtn" onclick="createGame()" disabled>
                 &#127922; Create Game (Play as White)
             </button>
 
-            <textarea id="offerCode" placeholder="Connection code will appear here / Paste friend's code here"></textarea>
+            <div id="gameIdDisplay" class="game-id-display" style="display: none;" onclick="copyGameId()">
+                <div class="label">YOUR GAME ID (click to copy)</div>
+                <div class="id" id="gameIdText"></div>
+                <div class="hint">Share this with your friend!</div>
+            </div>
 
-            <button class="btn btn-secondary" id="joinGame" onclick="joinGame()">
+            <div id="shareLink" class="share-link" style="display: none;" onclick="copyShareLink()">
+                <div class="label">Or share this direct link:</div>
+                <div id="shareLinkText"></div>
+            </div>
+
+            <div class="divider"><span>OR</span></div>
+
+            <input type="text" id="joinGameId" placeholder="Enter friend's Game ID" maxlength="6">
+            <button class="btn btn-secondary" id="joinGameBtn" onclick="joinGame()" disabled>
                 &#129309; Join Game (Play as Black)
-            </button>
-
-            <textarea id="answerCode" placeholder="Answer code (for joining player to send back)"></textarea>
-
-            <button class="btn btn-primary" id="connectBtn" onclick="completeConnection()" style="display:none;">
-                &#9889; Complete Connection
             </button>
         </div>
 
@@ -512,8 +627,8 @@
 
             <div class="chess-board" id="board"></div>
 
-            <div class="game-message" id="gameMessage">
-                Connect with a friend to start playing!
+            <div class="game-message waiting" id="gameMessage">
+                Create a game or join one to start playing!
             </div>
 
             <button class="btn btn-new-game" onclick="requestNewGame()" id="newGameBtn" style="display:none;">
@@ -526,7 +641,7 @@
             <h3>&#128172; Chat</h3>
             <div class="chat-messages" id="chatMessages">
                 <div class="chat-message system">
-                    Connect to start chatting...
+                    Connect to a game to start chatting...
                 </div>
             </div>
             <div class="chat-input-area">
@@ -577,6 +692,9 @@
         let myColor = null;
         let isConnected = false;
         let pendingPromotion = null;
+        let peer = null;
+        let conn = null;
+        let myGameId = null;
 
         // Initialize board
         function initializeBoard() {
@@ -1044,7 +1162,7 @@
             renderBoard();
 
             // Send move to opponent
-            sendMove({ fromRow, fromCol, toRow, toCol, promotionPiece: promotionPiece ? promotionPiece : null });
+            sendData({ type: 'move', move: { fromRow, fromCol, toRow, toCol, promotionPiece: promotionPiece ? promotionPiece : null } });
         }
 
         function hasValidMoves(color) {
@@ -1159,158 +1277,219 @@
             el.className = 'game-message ' + className;
         }
 
-        // ============ WEBRTC CONNECTION ============
+        // ============ PEERJS CONNECTION ============
 
-        let peerConnection = null;
-        let dataChannel = null;
+        function generateGameId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
 
-        const rtcConfig = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
-            ]
-        };
+        function initializePeer() {
+            updateStatus('connecting', 'Connecting to server...');
 
-        async function createGame() {
+            peer = new Peer({
+                debug: 1
+            });
+
+            peer.on('open', (id) => {
+                updateStatus('ready', 'Ready to play!');
+                document.getElementById('createGameBtn').disabled = false;
+                document.getElementById('joinGameBtn').disabled = false;
+            });
+
+            peer.on('connection', (connection) => {
+                if (conn) {
+                    connection.close();
+                    return;
+                }
+                conn = connection;
+                setupConnection();
+            });
+
+            peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                if (err.type === 'peer-unavailable') {
+                    showNotification('Game not found. Check the Game ID.');
+                    updateStatus('ready', 'Ready to play!');
+                    document.getElementById('joinGameBtn').disabled = false;
+                    document.getElementById('joinGameBtn').innerHTML = '&#129309; Join Game (Play as Black)';
+                } else if (err.type === 'unavailable-id') {
+                    // Try with a different ID
+                    myGameId = 'chess-' + generateGameId();
+                    createGame();
+                } else {
+                    updateStatus('error', 'Connection error. Please refresh.');
+                }
+            });
+
+            peer.on('disconnected', () => {
+                updateStatus('disconnected', 'Disconnected. Reconnecting...');
+                peer.reconnect();
+            });
+        }
+
+        function createGame() {
             myColor = 'white';
-            document.getElementById('createGame').disabled = true;
-            document.getElementById('joinGame').disabled = true;
+            myGameId = 'chess-' + generateGameId();
 
-            peerConnection = new RTCPeerConnection(rtcConfig);
+            document.getElementById('createGameBtn').disabled = true;
+            document.getElementById('joinGameBtn').disabled = true;
+            document.getElementById('createGameBtn').innerHTML = '<span class="spinner"></span>Creating...';
 
-            dataChannel = peerConnection.createDataChannel('chess');
-            setupDataChannel(dataChannel);
+            // Destroy old peer and create new one with specific ID
+            if (peer) {
+                peer.destroy();
+            }
 
-            peerConnection.onicecandidate = async (event) => {
-                if (event.candidate === null) {
-                    const offer = btoa(JSON.stringify(peerConnection.localDescription));
-                    document.getElementById('offerCode').value = offer;
-                    showNotification('Offer created! Copy and send to your friend.');
+            peer = new Peer(myGameId, { debug: 1 });
+
+            peer.on('open', (id) => {
+                const displayId = id.replace('chess-', '');
+                document.getElementById('gameIdText').textContent = displayId;
+                document.getElementById('gameIdDisplay').style.display = 'block';
+
+                // Generate share link
+                const shareUrl = window.location.href.split('?')[0] + '?join=' + displayId;
+                document.getElementById('shareLinkText').textContent = shareUrl;
+                document.getElementById('shareLink').style.display = 'block';
+
+                document.getElementById('createGameBtn').innerHTML = '&#127922; Game Created!';
+                updateStatus('waiting', 'Waiting for opponent...');
+                updateGameMessage('Waiting for opponent to join with ID: ' + displayId, 'waiting');
+            });
+
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+            });
+
+            peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                if (err.type === 'unavailable-id') {
+                    myGameId = 'chess-' + generateGameId();
+                    createGame();
                 }
-            };
-
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-
-            document.getElementById('connectBtn').style.display = 'block';
-            document.getElementById('answerCode').placeholder = 'Paste your friend\'s answer code here';
+            });
         }
 
-        async function joinGame() {
+        function joinGame() {
+            const gameId = document.getElementById('joinGameId').value.trim().toUpperCase();
+
+            if (!gameId) {
+                showNotification('Please enter a Game ID');
+                return;
+            }
+
             myColor = 'black';
-            const offerCode = document.getElementById('offerCode').value.trim();
+            document.getElementById('createGameBtn').disabled = true;
+            document.getElementById('joinGameBtn').disabled = true;
+            document.getElementById('joinGameBtn').innerHTML = '<span class="spinner"></span>Joining...';
+            updateStatus('connecting', 'Connecting to game...');
 
-            if (!offerCode) {
-                alert('Please paste the offer code from your friend first!');
-                return;
-            }
+            const fullId = 'chess-' + gameId;
+            conn = peer.connect(fullId, { reliable: true });
 
-            try {
-                document.getElementById('createGame').disabled = true;
-                document.getElementById('joinGame').disabled = true;
+            conn.on('open', () => {
+                setupConnection();
+            });
 
-                const offer = JSON.parse(atob(offerCode));
-
-                peerConnection = new RTCPeerConnection(rtcConfig);
-
-                peerConnection.ondatachannel = (event) => {
-                    dataChannel = event.channel;
-                    setupDataChannel(dataChannel);
-                };
-
-                peerConnection.onicecandidate = async (event) => {
-                    if (event.candidate === null) {
-                        const answer = btoa(JSON.stringify(peerConnection.localDescription));
-                        document.getElementById('answerCode').value = answer;
-                        showNotification('Answer created! Copy and send back to your friend.');
-                    }
-                };
-
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-
-            } catch (e) {
-                console.error('Error joining game:', e);
-                alert('Invalid offer code. Please check and try again.');
-                document.getElementById('createGame').disabled = false;
-                document.getElementById('joinGame').disabled = false;
-            }
+            conn.on('error', (err) => {
+                console.error('Connection error:', err);
+                showNotification('Failed to connect. Check the Game ID.');
+                updateStatus('ready', 'Ready to play!');
+                document.getElementById('joinGameBtn').disabled = false;
+                document.getElementById('joinGameBtn').innerHTML = '&#129309; Join Game (Play as Black)';
+            });
         }
 
-        async function completeConnection() {
-            const answerCode = document.getElementById('answerCode').value.trim();
+        function setupConnection() {
+            conn.on('open', () => {
+                onConnected();
+            });
 
-            if (!answerCode) {
-                alert('Please paste the answer code from your friend!');
-                return;
-            }
+            conn.on('data', (data) => {
+                handleData(data);
+            });
 
-            try {
-                const answer = JSON.parse(atob(answerCode));
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            } catch (e) {
-                console.error('Error completing connection:', e);
-                alert('Invalid answer code. Please check and try again.');
-            }
-        }
-
-        function setupDataChannel(channel) {
-            channel.onopen = () => {
-                isConnected = true;
-                document.getElementById('statusDot').classList.add('connected');
-                document.getElementById('statusText').textContent = `Connected as ${myColor}`;
-                document.getElementById('chatInput').disabled = false;
-                document.getElementById('chatSendBtn').disabled = false;
-
-                initializeBoard();
-                renderBoard();
-                updateGameMessage(`Game started! ${myColor === 'white' ? 'Your' : "Opponent's"} turn.`);
-
-                addChatMessage('Game connected! You are playing as ' + myColor + '.', 'system');
-            };
-
-            channel.onclose = () => {
+            conn.on('close', () => {
                 isConnected = false;
-                document.getElementById('statusDot').classList.remove('connected');
-                document.getElementById('statusText').textContent = 'Disconnected';
+                updateStatus('disconnected', 'Opponent disconnected');
                 addChatMessage('Opponent disconnected.', 'system');
-            };
+            });
 
-            channel.onmessage = (event) => {
-                const data = JSON.parse(event.data);
+            conn.on('error', (err) => {
+                console.error('Connection error:', err);
+            });
 
-                switch (data.type) {
-                    case 'move':
-                        receiveMove(data.move);
-                        break;
-                    case 'chat':
-                        addChatMessage(data.message, 'opponent');
-                        break;
-                    case 'newGame':
-                        if (confirm('Opponent wants to start a new game. Accept?')) {
-                            sendData({ type: 'newGameAccepted' });
-                            startNewGame();
-                        }
-                        break;
-                    case 'newGameAccepted':
+            // If already open (for the initiator)
+            if (conn.open) {
+                onConnected();
+            }
+        }
+
+        function onConnected() {
+            isConnected = true;
+            updateStatus('connected', `Connected as ${myColor}`);
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('chatSendBtn').disabled = false;
+
+            // Hide connection controls
+            document.getElementById('createGameBtn').style.display = 'none';
+            document.getElementById('joinGameBtn').style.display = 'none';
+            document.getElementById('joinGameId').style.display = 'none';
+            document.querySelector('.divider').style.display = 'none';
+
+            initializeBoard();
+            renderBoard();
+            updateGameMessage(`Game started! ${myColor === 'white' ? 'Your' : "Opponent's"} turn.`);
+            addChatMessage('Connected! You are playing as ' + myColor + '.', 'system');
+
+            // Send ready message
+            sendData({ type: 'ready', color: myColor });
+        }
+
+        function handleData(data) {
+            switch (data.type) {
+                case 'move':
+                    receiveMove(data.move);
+                    break;
+                case 'chat':
+                    addChatMessage(data.message, 'opponent');
+                    break;
+                case 'newGame':
+                    if (confirm('Opponent wants to start a new game. Accept?')) {
+                        sendData({ type: 'newGameAccepted' });
                         startNewGame();
-                        break;
-                }
-            };
+                    }
+                    break;
+                case 'newGameAccepted':
+                    startNewGame();
+                    break;
+                case 'ready':
+                    addChatMessage('Opponent connected!', 'system');
+                    break;
+            }
         }
 
         function sendData(data) {
-            if (dataChannel && dataChannel.readyState === 'open') {
-                dataChannel.send(JSON.stringify(data));
+            if (conn && conn.open) {
+                conn.send(data);
             }
         }
 
-        function sendMove(move) {
-            sendData({ type: 'move', move });
+        function updateStatus(state, text) {
+            const dot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            dot.className = 'status-dot';
+            if (state === 'connected') dot.classList.add('connected');
+            if (state === 'connecting' || state === 'waiting') dot.classList.add('connecting');
+
+            statusText.textContent = text;
         }
 
         // ============ CHAT ============
@@ -1380,28 +1559,41 @@
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
-        // Copy on click for code textareas
-        document.getElementById('offerCode').onclick = function() {
-            if (this.value) {
-                this.select();
-                navigator.clipboard.writeText(this.value).then(() => {
-                    showNotification('Copied to clipboard!');
-                });
-            }
-        };
+        function copyGameId() {
+            const gameId = document.getElementById('gameIdText').textContent;
+            navigator.clipboard.writeText(gameId).then(() => {
+                showNotification('Game ID copied: ' + gameId);
+            });
+        }
 
-        document.getElementById('answerCode').onclick = function() {
-            if (this.value) {
-                this.select();
-                navigator.clipboard.writeText(this.value).then(() => {
-                    showNotification('Copied to clipboard!');
-                });
+        function copyShareLink() {
+            const link = document.getElementById('shareLinkText').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Share link copied!');
+            });
+        }
+
+        // Check URL for join parameter
+        function checkUrlForJoin() {
+            const params = new URLSearchParams(window.location.search);
+            const joinId = params.get('join');
+            if (joinId) {
+                document.getElementById('joinGameId').value = joinId.toUpperCase();
+                // Auto-join after peer is ready
+                const checkPeer = setInterval(() => {
+                    if (peer && peer.open) {
+                        clearInterval(checkPeer);
+                        joinGame();
+                    }
+                }, 100);
             }
-        };
+        }
 
         // Initialize
         initializeBoard();
         renderBoard();
+        initializePeer();
+        checkUrlForJoin();
     </script>
 </body>
 </html>
